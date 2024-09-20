@@ -26,12 +26,13 @@ main(){
   done
   
   #fixParu
+  cd $HOME
   git clone -b "${branchName}" "${repoUrl}" 
   cd "${playbookDir}" || { >&2 echo "Failed to change directory to ${playbookDir}"; exit 1; }
   ansible-galaxy collection install -r requirements.yml
 }
   
-removeForVm(){ sed -i "61d" group_vars/all/vars.yml && sed -i "20,24d" roles/hypervisor/tasks/hypervisor.yml ; }
+removeForVm(){ sed -i "64d" group_vars/all/vars.yml && sed -i "20,24d" roles/hypervisor/tasks/hypervisor.yml ; }
 changeUserDir(){ cd "${playbookDir}" &> /dev/null; $SHELL ; } 
 
 case "${1}" in
