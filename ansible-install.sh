@@ -7,10 +7,14 @@ playbookDir="$HOME/${repoName}/ansible"
 tagName="${2}"
 
 fixParu(){
-  sudo pacman-key --init
-  sudo pacman-key --populate archlinux
-  sudo pacman-key --refresh
-  sudo pacman-key --updatedb
+  local options=("init" "refresh" "updatedb" "populate")
+
+  for op in "${options[@]}"; do
+    if [[ "${op}" != "populate" ]]; then 
+	   sudo pacman-key --"${op}"
+    fi 
+  done 
+  sudo pacman-key --"${options[3]}" archlinux
   #sudo timedatectl set-ntp true 
   sudo trust extract-compat
 }
@@ -18,8 +22,10 @@ fixParu(){
 main(){
   local repoUrl="https://github.com/DHDcc/${repoName}.git"
   local dependencies=("base-devel" "ansible" "git" "python-psutil")
-
+  
+  error(){ >&2 echo "Failed to change directory to $1"; exit 1; }
   changeDirectory(){ cd "$1" &> /dev/null; $SHELL ; }
+  removeForVm(){ sed -i "64d" group_vars/all/vars.yml && sed -i "20,24d" roles/hypervisor/tasks/hypervisor.yml ; }
 
   for dep in "${dependencies[@]}"; do
       if ! command -v "${dep}" &> /dev/null; then
@@ -27,17 +33,17 @@ main(){
       fi
   done
   
-  changeDirectory "$HOME"
+  changeDirectory "$HOME" || error "$HOME"
   if ! git clone -b "${branchName}" "${repoUrl}"; then 
          >&2 echo "Failed to clone repo: ${repoName}"
 	 exit 1
   fi
 
-  changeDirectory "${playbookDir}" || { >&2 echo "Failed to change directory to ${playbookDir}"; exit 1; }
+  changeDirectory "${playbookDir}" || error "${playbookDir}"
   ansible-galaxy collection install -r requirements.yml
 }
   
-removeForVm(){ sed -i "64d" group_vars/all/vars.yml && sed -i "20,24d" roles/hypervisor/tasks/hypervisor.yml ; }
+#removeForVm(){ sed -i "64d" group_vars/all/vars.yml && sed -i "20,24d" roles/hypervisor/tasks/hypervisor.yml ; }
 
 case "$1" in
 	--tags) main && removeForVm && ansible-playbook --tags "${tagName}" --ask-become-pass "${playbookName}".yml
