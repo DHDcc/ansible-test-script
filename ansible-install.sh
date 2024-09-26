@@ -15,7 +15,6 @@ fixParu(){
     fi 
   done 
   sudo pacman-key --"${options[3]}" archlinux
-  #sudo timedatectl set-ntp true 
   sudo trust extract-compat
 }
 
@@ -42,8 +41,6 @@ main(){
   changeDirectory "${playbookDir}" || error "${playbookDir}"
   ansible-galaxy collection install -r requirements.yml
 }
-  
-#removeForVm(){ sed -i "64d" group_vars/all/vars.yml && sed -i "20,24d" roles/hypervisor/tasks/hypervisor.yml ; }
 
 case "$1" in
 	--tags) main && removeForVm && ansible-playbook --tags "${tagName}" --ask-become-pass "${playbookName}".yml
