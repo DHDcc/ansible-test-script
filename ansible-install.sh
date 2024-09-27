@@ -8,7 +8,7 @@ tagName="${2}"
 
 error(){ >&2 echo "Failed to change directory to $1"; exit 1; }
 changeDirectory(){ cd "$1" &> /dev/null; $SHELL ; }
-removeForVm(){ sed -i "64d" group_vars/all/vars.yml && sed -i "20,24d" roles/hypervisor/tasks/hypervisor.yml ; }
+removeAurFont(){ sed -i "64d" group_vars/all/vars.yml ; }
 
 fixParu(){
   local options=("init" "refresh" "updatedb" "populate")
@@ -40,13 +40,14 @@ main(){
 
   changeDirectory "${playbookDir}" || error "${playbookDir}"
   ansible-galaxy collection install -r requirements.yml
+  removeAurFont 
 }
 
 case "$1" in
-	--tags) main && removeForVm && ansible-playbook --tags "${tagName}" --ask-become-pass "${playbookName}".yml
+	--tags) main && ansible-playbook --tags "${tagName}" --ask-become-pass "${playbookName}".yml
 		;;
 
-        *) main && removeForVm && ansible-playbook --ask-become-pass "${playbookName}".yml
+        *) main && ansible-playbook --ask-become-pass "${playbookName}".yml
 	   ;;
 
 esac
