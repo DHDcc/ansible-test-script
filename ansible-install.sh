@@ -6,6 +6,10 @@ playbookName="playbook"
 playbookDir="$HOME/${repoName}/ansible"
 tagName="${2}"
 
+error(){ >&2 echo "Failed to change directory to $1"; exit 1; }
+changeDirectory(){ cd "$1" &> /dev/null; $SHELL ; }
+removeForVm(){ sed -i "64d" group_vars/all/vars.yml && sed -i "20,24d" roles/hypervisor/tasks/hypervisor.yml ; }
+
 fixParu(){
   local options=("init" "refresh" "updatedb" "populate")
 
@@ -21,10 +25,6 @@ fixParu(){
 main(){
   local repoUrl="https://github.com/DHDcc/${repoName}.git"
   local dependencies=("base-devel" "ansible" "git" "python-psutil")
-  
-  error(){ >&2 echo "Failed to change directory to $1"; exit 1; }
-  changeDirectory(){ cd "$1" &> /dev/null; $SHELL ; }
-  removeForVm(){ sed -i "64d" group_vars/all/vars.yml && sed -i "20,24d" roles/hypervisor/tasks/hypervisor.yml ; }
 
   for dep in "${dependencies[@]}"; do
       if ! command -v "${dep}" &> /dev/null; then
