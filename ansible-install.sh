@@ -17,8 +17,9 @@ fixParu(){
     if [[ "${op}" != "populate" ]]; then 
 	   sudo pacman-key --"${op}"
     fi 
-  done 
-  sudo pacman-key --"${options[3]}" archlinux
+  done
+
+  sudo pacman-key --populate archlinux
   sudo trust extract-compat
 }
 
