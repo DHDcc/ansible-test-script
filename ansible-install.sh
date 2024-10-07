@@ -29,7 +29,7 @@ main(){
 
   for dep in "${dependencies[@]}"; do
       if ! command -v "${dep}" &> /dev/null; then
-	     sudo pacman -Syu --noconfirm --needed "${dep}"
+	     sudo pacman -S --noconfirm --needed "${dep}"
       fi
   done
   
