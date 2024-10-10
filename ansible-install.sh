@@ -4,7 +4,6 @@ repoName="archlinux-ansible"
 branchName="testing"
 playbookName="playbook"
 playbookDir="$HOME/${repoName}/ansible"
-tagName="${2}"
 
 error(){ >&2 echo "Failed to change directory to $1"; exit 1; }
 changeDirectory(){ cd "$1" &> /dev/null; $SHELL ; }
@@ -16,10 +15,11 @@ fixParu(){
   for op in "${options[@]}"; do
     if [[ "${op}" != "populate" ]]; then 
 	   sudo pacman-key --"${op}"
+    else
+           sudo pacman-key --"${op}" archlinux
     fi 
   done
 
-  sudo pacman-key --populate archlinux
   sudo trust extract-compat
 }
 
@@ -44,14 +44,8 @@ main(){
   removeAurFont 
 }
 
-case "$1" in
-	--tags) main && ansible-playbook --tags "${tagName}" --ask-become-pass "${playbookName}".yml
-		;;
-
-        *) main && ansible-playbook --ask-become-pass "${playbookName}".yml
-	   ;;
-
-esac
+main && ansible-playbook --ask-become-pass "${playbookName}".yml
+	  
 
 
             
