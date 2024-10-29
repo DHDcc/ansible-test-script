@@ -2,12 +2,13 @@
 
 repoName="archlinux-ansible"
 branchName="testing"
-playbookName="playbook"
+defaultPlaybookName="playbooks"
+NewPlaybookName="${2}"
 playbookDir="$HOME/${repoName}/ansible"
 
 error(){ >&2 echo "Failed to change directory to $1"; exit 1; }
 changeDirectory(){ cd "$1" &> /dev/null; $SHELL ; }
-removeAurFont(){ sed -i "64d" group_vars/all/vars.yml ; }
+noHypervisor(){ sed -i "16,20d" hypervisor/hypervisor.yml ; }
 
 fixParu(){
   local options=("init" "refresh" "updatedb" "populate")
@@ -23,6 +24,14 @@ fixParu(){
   sudo trust extract-compat
 }
 
+NewPlaybook(){
+     git clone https://aur.archlinux.org/paru-bin.git
+     ( cd paru-bin && makepkg -si )
+     mv inventory/ ansible.cfg "${NewPlaybookName}"
+     changeDirectory "${NewPlaybookName}" || error "${NewPlaybookName}"
+}
+
+  
 main(){
   local repoUrl="https://github.com/DHDcc/${repoName}.git"
   local dependencies=("base-devel" "ansible" "git" "python-psutil")
@@ -41,10 +50,12 @@ main(){
 
   changeDirectory "${playbookDir}" || error "${playbookDir}"
   ansible-galaxy collection install -r requirements.yml
-  removeAurFont 
+  noHypervisor
+  [[ -n "${NewPlaybookName}" ]] && NewPlaybook
+
 }
 
-main && ansible-playbook --ask-become-pass "${playbookName}".yml
+main && [[ -n "${NewPlaybookName}" ]] && ansible-playbook --ask-become-pass "${defaultPlaybookName}".yml || ansible-playbook --ask-become-pass main.yml
 	  
 
 
