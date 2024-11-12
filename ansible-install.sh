@@ -3,12 +3,23 @@
 repoName="archlinux-ansible"
 branchName="testing"
 defaultPlaybookName="playbooks"
-NewPlaybookName="${2}"
 playbookDir="$HOME/${repoName}/ansible"
+tagName="${2}"
 
 error(){ >&2 echo "Failed to change directory to $1"; exit 1; }
 changeDirectory(){ cd "$1" &> /dev/null; $SHELL ; }
 noHypervisor(){ sed -i "16,20d" hypervisor/hypervisor.yml ; }
+
+usage() {
+    local scriptName="${0##*/}"
+    cat << EOF
+usage: ${scriptName} [options] <tag_name>
+
+    -t	add a tag
+    -r  run all the playbooks
+    -h	Show this help
+EOF
+}
 
 fixParu(){
   local options=("init" "refresh" "updatedb" "populate")
@@ -21,12 +32,14 @@ fixParu(){
     fi 
   done
 
+  sudo pacman-key --populate archlinux
   sudo trust extract-compat
 }
 
-NewPlaybook(){
-     git clone https://aur.archlinux.org/paru-bin.git
-     ( cd paru-bin && makepkg -si )
+otherPlaybook(){
+     local helperName="paru-bin"
+     git clone https://aur.archlinux.org/"${helperName}".git
+     ( cd "${helperName}" && makepkg -si )
      mv inventory/ ansible.cfg "${NewPlaybookName}"
      changeDirectory "${NewPlaybookName}" || error "${NewPlaybookName}"
 }
@@ -51,12 +64,13 @@ main(){
   changeDirectory "${playbookDir}" || error "${playbookDir}"
   ansible-galaxy collection install -r requirements.yml
   noHypervisor
-  [[ -n "${NewPlaybookName}" ]] && NewPlaybook
-
 }
-
-main && [[ -n "${NewPlaybookName}" ]] && ansible-playbook --ask-become-pass "${defaultPlaybookName}".yml || ansible-playbook --ask-become-pass main.yml
 	  
+case "$1" in
+	-t) main && otherPlaybook && ansible-playbook --tags "${tagName}" --ask-become-pass main.yml ;;
 
+        -r) main && ansible-playbook --ask-become-pass playbooks.yml ;;
+ 
+        *) usage && exit 1 ;;       
 
-            
+esac
