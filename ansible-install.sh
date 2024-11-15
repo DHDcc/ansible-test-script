@@ -4,7 +4,7 @@ repoName="archlinux-ansible"
 branchName="testing"
 defaultPlaybookName="playbooks"
 playbookDir="$HOME/${repoName}/ansible"
-tagName="${2}"
+tagName="${3}"
 
 error(){ >&2 echo "Failed to change directory to $1"; exit 1; }
 changeDirectory(){ cd "$1" &> /dev/null; $SHELL ; }
