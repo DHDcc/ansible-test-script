@@ -11,19 +11,19 @@ error(){ >&2 echo "Failed to change directory to $1"; exit 1; }
 
 ansibleOptions(){
   local changeOptions=true
-  local optionsFile="${playbookDir}/group_vars/all/options.yml"
+  local ansibleOptionsFile="${playbookDir}/group_vars/all/options.yml"
   local options=(
           "hypervisor"
           "gaming_packages" 
   )
 
-  if [[ "${changeOptions}" ]]; then
+  if [[ "${changeOptions}" == true ]]; then
        for op in "${Options[@]}"; do
-           local trueOrFalse=$(grep "${op}" "${optionsFile}" | awk '{print $2}')
-           local lineNumber=$(grep -n "${op}" "${optionsFile}" | awk -F':' '{print $1}')
-           local reverseTrueOrFalse=$([[ "${trueOrFalse}" ]] && echo "false" || echo "true")
+           local trueOrFalse=$(grep "${op}" "${ansibleOptionsFile}" | awk '{print $2}')
+           local lineNumber=$(grep -n "${op}" "${ansibleOptionsFile}" | awk -F':' '{print $1}')
+           local reverseTrueOrFalse=$([[ "${trueOrFalse}" == "true" ]] && echo "false" || echo "true")
            
-           sed -i "${lineNumber}s/${trueOrFalse}/${reverseTrueOrFalse}/" "${optionsFile}"
+           sed -i "${lineNumber}s/${trueOrFalse}/${reverseTrueOrFalse}/" "${ansibleOptionsFile}"
        done
   fi
 }
