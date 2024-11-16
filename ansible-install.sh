@@ -17,7 +17,7 @@ ansibleOptions(){
           "gaming_packages" 
   )
 
-  if [[ "${changeOptions}" == true ]]; then
+  if [[ "${changeOptions}" == "true" ]]; then
        for op in "${Options[@]}"; do
            local trueOrFalse=$(grep "${op}" "${ansibleOptionsFile}" | awk '{print $2}')
            local lineNumber=$(grep -n "${op}" "${ansibleOptionsFile}" | awk -F':' '{print $1}')
@@ -57,10 +57,11 @@ fixParu(){
 
 otherPlaybook(){
      local helperName="paru-bin"
+     local defaultPlaybookName=${tagName}
      git clone https://aur.archlinux.org/"${helperName}".git
      ( cd "${helperName}" && makepkg -si )
-     mv inventory/ ansible.cfg "${NewPlaybookName}"
-     changeDirectory "${NewPlaybookName}" || error "${NewPlaybookName}"
+     mv inventory/ ansible.cfg "${defaultPlaybookName}"
+     cd  "${defaultPlaybookName}" || error "${defaultPlaybookName}"
 }
 
   
