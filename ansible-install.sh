@@ -7,8 +7,27 @@ playbookDir="$HOME/${repoName}/ansible"
 tagName="${3}"
 
 error(){ >&2 echo "Failed to change directory to $1"; exit 1; }
-changeDirectory(){ cd "$1" &> /dev/null; $SHELL ; }
-noHypervisor(){ sed -i "16,20d" hypervisor/hypervisor.yml ; }
+#noHypervisor(){ sed -i "16,20d" hypervisor/hypervisor.yml ; }
+
+ansibleOptions(){
+  local changeOptions=true
+  local optionsFile="${playbookDir}/group_vars/all/options.yml"
+  local options=(
+          "hypervisor"
+          "gaming_packages" 
+  )
+
+  if [[ "${changeOptions}" ]]; then
+       for op in "${Options[@]}"; do
+           local trueOrFalse=$(grep "${op}" "${optionsFile}" | awk '{print $2}')
+           local lineNumber=$(grep -n "${op}" "${optionsFile}" | awk -F':' '{print $1}')
+           local reverseTrueOrFalse=$([[ "${trueOrFalse}" ]] && echo "false" || echo "true")
+           
+           sed -i "${lineNumber}s/${trueOrFalse}/${reverseTrueOrFalse}/" "${optionsFile}"
+       done
+  fi
+}
+  
 
 usage() {
     local scriptName="${0##*/}"
@@ -55,21 +74,21 @@ main(){
       fi
   done
   
-  changeDirectory "$HOME" || error "$HOME"
+  cd "$HOME" || error "$HOME"
   if ! git clone -b "${branchName}" "${repoUrl}"; then 
          >&2 echo "Failed to clone repo: ${repoName}"
 	 exit 1
   fi
 
-  changeDirectory "${playbookDir}" || error "${playbookDir}"
+  cd  "${playbookDir}" || error "${playbookDir}"
   ansible-galaxy collection install -r requirements.yml
-  noHypervisor
+  ansibleOptions
 }
 	  
 case "$1" in
-	-t) main && otherPlaybook && ansible-playbook --tags "${tagName}" --ask-become-pass main.yml ;;
+	-t) main && otherPlaybook && ansible-playbook --tags "${tagName}" --ask-become-pass main.yml && exit ;;
 
-        -r) main && ansible-playbook --ask-become-pass playbooks.yml ;;
+        -r) main && ansible-playbook --ask-become-pass playbooks.yml && exit ;;
  
         *) usage && exit 1 ;;       
 
