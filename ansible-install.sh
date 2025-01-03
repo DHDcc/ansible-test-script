@@ -4,30 +4,24 @@ repoName="archlinux-ansible"
 branchName="testing"
 defaultPlaybookName="playbooks"
 playbookDir="$HOME/${repoName}/ansible"
-tagName="${3}"
+tagName="${3}" 
 
 error(){ >&2 echo "Failed to change directory to $1"; exit 1; }
-#noHypervisor(){ sed -i "16,20d" hypervisor/hypervisor.yml ; }
-
 ansibleOptions(){
-  local changeOptions=true
+  local changeOptions=false
   local ansibleOptionsFile="${playbookDir}/group_vars/all/options.yml"
   local options=(
           "hypervisor"
           "gaming_packages" 
   )
 
-  if [[ "${changeOptions}" == "true" ]]; then
+  if [[ "${changeOptions}" ]]; then
        for op in "${Options[@]}"; do
-           local trueOrFalse=$(grep "${op}" "${ansibleOptionsFile}" | awk '{print $2}')
            local lineNumber=$(grep -n "${op}" "${ansibleOptionsFile}" | awk -F':' '{print $1}')
-           local reverseTrueOrFalse=$([[ "${trueOrFalse}" == "true" ]] && echo "false" || echo "true")
-           
-           sed -i "${lineNumber}s/${trueOrFalse}/${reverseTrueOrFalse}/" "${ansibleOptionsFile}"
+           sed -i "${lineNumber}s/false/true/" "${ansibleOptionsFile}"
        done
   fi
 }
-  
 
 usage() {
     local scriptName="${0##*/}"
@@ -40,7 +34,7 @@ usage: ${scriptName} [options] <tag_name>
 EOF
 }
 
-fixParu(){
+fixSystem(){
   local options=("init" "refresh" "updatedb" "populate")
 
   for op in "${options[@]}"; do
@@ -55,7 +49,7 @@ fixParu(){
   sudo trust extract-compat
 }
 
-otherPlaybook(){
+otherPlaybook(){ # fix fonction 
      local helperName="paru-bin"
      local defaultPlaybookName=${tagName}
      git clone https://aur.archlinux.org/"${helperName}".git
